@@ -71,7 +71,7 @@ static cl::opt<bool> JumpIsExpensiveOverride(
     cl::Hidden);
 
 static cl::opt<unsigned> MinimumJumpTableEntries
-  ("min-jump-table-entries", cl::init(4), cl::Hidden,
+  ("min-jump-table-entries", cl::init(3), cl::Hidden,
    cl::desc("Set minimum number of entries to use a jump table."));
 
 static cl::opt<unsigned> MaximumJumpTableSize
