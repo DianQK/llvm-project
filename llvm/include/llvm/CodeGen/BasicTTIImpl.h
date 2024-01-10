@@ -434,6 +434,10 @@ public:
     return BaseT::getGEPCost(PointeeType, Ptr, Operands, AccessType, CostKind);
   }
 
+  unsigned getMinimumJumpTableEntries() const {
+    return getTLI()->getMinimumJumpTableEntries();
+  }
+
   unsigned getEstimatedNumberOfCaseClusters(const SwitchInst &SI,
                                             unsigned &JumpTableSize,
                                             ProfileSummaryInfo *PSI,

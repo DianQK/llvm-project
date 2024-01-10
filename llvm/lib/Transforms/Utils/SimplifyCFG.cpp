@@ -6576,9 +6576,9 @@ static bool SwitchToLookupTable(SwitchInst *SI, IRBuilder<> &Builder,
   // GEP needs a runtime relocation in PIC code. We should just build one big
   // string and lookup indices into that.
 
-  // Ignore switches with less than three cases. Lookup tables will not make
-  // them faster, so we don't analyze them.
-  if (SI->getNumCases() < 3)
+  // Ignore switches with less than minimum jump table entries. Lookup tables
+  // will not make them faster, so we don't analyze them.
+  if (SI->getNumCases() < TTI.getMinimumJumpTableEntries())
     return false;
 
   // Figure out the corresponding result for each case value and phi node in the

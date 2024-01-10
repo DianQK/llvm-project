@@ -58,6 +58,8 @@ public:
     return TTI::TCC_Free;
   }
 
+  unsigned int getMinimumJumpTableEntries() const { return 4; }
+
   unsigned getEstimatedNumberOfCaseClusters(const SwitchInst &SI,
                                             unsigned &JTSize,
                                             ProfileSummaryInfo *PSI,
