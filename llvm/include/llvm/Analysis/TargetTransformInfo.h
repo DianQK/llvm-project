@@ -845,6 +845,9 @@ public:
   /// Returns the estimated number of registers required to represent \p Ty.
   unsigned getRegUsageForType(Type *Ty) const;
 
+  // Return lower limit for number of blocks in a jump table.
+  unsigned getMinimumJumpTableEntries() const;
+
   /// Return true if switches should be turned into lookup tables for the
   /// target.
   bool shouldBuildLookupTables() const;
@@ -1762,6 +1765,7 @@ public:
                                        const AllocaInst *AI) const = 0;
   virtual InstructionCost getMemcpyCost(const Instruction *I) = 0;
   virtual uint64_t getMaxMemIntrinsicInlineSizeThreshold() const = 0;
+  virtual unsigned getMinimumJumpTableEntries() const = 0;
   virtual unsigned
   getEstimatedNumberOfCaseClusters(const SwitchInst &SI, unsigned &JTSize,
                                    ProfileSummaryInfo *PSI,
@@ -2564,6 +2568,9 @@ public:
 
   unsigned getMaxInterleaveFactor(ElementCount VF) override {
     return Impl.getMaxInterleaveFactor(VF);
+  }
+  unsigned int getMinimumJumpTableEntries() const override {
+    return Impl.getMinimumJumpTableEntries();
   }
   unsigned getEstimatedNumberOfCaseClusters(const SwitchInst &SI,
                                             unsigned &JTSize,

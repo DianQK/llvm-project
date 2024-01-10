@@ -548,6 +548,10 @@ unsigned TargetTransformInfo::getRegUsageForType(Type *Ty) const {
   return TTIImpl->getRegUsageForType(Ty);
 }
 
+unsigned TargetTransformInfo::getMinimumJumpTableEntries() const {
+  return TTIImpl->getMinimumJumpTableEntries();
+}
+
 bool TargetTransformInfo::shouldBuildLookupTables() const {
   return TTIImpl->shouldBuildLookupTables();
 }
