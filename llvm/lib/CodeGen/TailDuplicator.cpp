@@ -76,6 +76,11 @@ static cl::opt<bool>
 static cl::opt<unsigned> TailDupLimit("tail-dup-limit", cl::init(~0U),
                                       cl::Hidden);
 
+static cl::opt<unsigned> TailDupPredSizeLimit(
+    "tail-dup-pred-size-limit",
+    cl::desc("Maximum predecessors to consider tail duplicating."), cl::init(8),
+    cl::Hidden);
+
 void TailDuplicator::initMF(MachineFunction &MFin, bool PreRegAlloc,
                             const MachineBranchProbabilityInfo *MBPIin,
                             MBFIWrapper *MBFIin,
@@ -565,6 +570,8 @@ bool TailDuplicator::shouldTailDuplicate(bool IsSimple,
   if (TailBB.isSuccessor(&TailBB))
     return false;
 
+  if (TailDupPredSizeLimit < TailBB.pred_size())
+    return false;
   // Set the limit on the cost to duplicate. When optimizing for size,
   // duplicate only one, because one branch instruction can be eliminated to
   // compensate for the duplication.
