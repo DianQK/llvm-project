@@ -8,10 +8,9 @@ define void @forward_offset(ptr %dep_src) {
 ; CHECK-LABEL: define void @forward_offset(
 ; CHECK-SAME: ptr [[DEP_SRC:%.*]]) {
 ; CHECK-NEXT:    [[DEP_DEST:%.*]] = alloca [7 x i8], align 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP_DEST]], ptr align 1 [[DEP_SRC]], i64 7, i1 false)
 ; CHECK-NEXT:    [[SRC:%.*]] = getelementptr inbounds i8, ptr [[DEP_DEST]], i64 1
 ; CHECK-NEXT:    [[DEP:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP]], ptr align 1 [[SRC]], i64 6, i1 false)
+; CHECK-NEXT:    call void @llvm.memmove.p0.p0.i64(ptr align 1 [[DEP]], ptr align 1 [[DEP]], i64 6, i1 false)
 ; CHECK-NEXT:    ret void
 ;
   %dep_dest = alloca %buf, align 1
@@ -27,10 +26,9 @@ define void @forward_offset_align(ptr %dep_src) {
 ; CHECK-LABEL: define void @forward_offset_align(
 ; CHECK-SAME: ptr [[DEP_SRC:%.*]]) {
 ; CHECK-NEXT:    [[DEP_DEST:%.*]] = alloca [7 x i8], align 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP_DEST]], ptr align 2 [[DEP_SRC]], i64 7, i1 false)
 ; CHECK-NEXT:    [[SRC:%.*]] = getelementptr inbounds i8, ptr [[DEP_DEST]], i64 1
 ; CHECK-NEXT:    [[DEP:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP]], ptr align 1 [[SRC]], i64 6, i1 false)
+; CHECK-NEXT:    call void @llvm.memmove.p0.p0.i64(ptr align 1 [[DEP]], ptr align 1 [[DEP]], i64 6, i1 false)
 ; CHECK-NEXT:    ret void
 ;
   %dep_dest = alloca %buf, align 1
@@ -46,10 +44,10 @@ define void @forward_offset_with_gep(ptr %dep_src) {
 ; CHECK-LABEL: define void @forward_offset_with_gep(
 ; CHECK-SAME: ptr [[DEP_SRC:%.*]]) {
 ; CHECK-NEXT:    [[DEP_DEST:%.*]] = alloca [7 x i8], align 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP_DEST]], ptr align 1 [[DEP_SRC]], i64 7, i1 false)
 ; CHECK-NEXT:    [[SRC:%.*]] = getelementptr inbounds i8, ptr [[DEP_DEST]], i64 1
 ; CHECK-NEXT:    [[DEP1:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 2
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP1]], ptr align 1 [[SRC]], i64 6, i1 false)
+; CHECK-NEXT:    [[TMP1:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 1
+; CHECK-NEXT:    call void @llvm.memmove.p0.p0.i64(ptr align 1 [[DEP1]], ptr align 1 [[TMP1]], i64 6, i1 false)
 ; CHECK-NEXT:    ret void
 ;
   %dep_dest = alloca %buf, align 1
@@ -66,9 +64,9 @@ define void @forward_offset_memcpy(ptr %dep_src) {
 ; CHECK-SAME: ptr [[DEP_SRC:%.*]]) {
 ; CHECK-NEXT:    [[DEP_DEST:%.*]] = alloca [7 x i8], align 1
 ; CHECK-NEXT:    [[DEST:%.*]] = alloca [7 x i8], align 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP_DEST]], ptr align 1 [[DEP_SRC]], i64 7, i1 false)
 ; CHECK-NEXT:    [[SRC:%.*]] = getelementptr inbounds i8, ptr [[DEP_DEST]], i64 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEST]], ptr align 1 [[SRC]], i64 6, i1 false)
+; CHECK-NEXT:    [[TMP1:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 1
+; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEST]], ptr align 1 [[TMP1]], i64 6, i1 false)
 ; CHECK-NEXT:    call void @use(ptr [[DEST]])
 ; CHECK-NEXT:    ret void
 ;
@@ -87,9 +85,9 @@ define void @forward_offset_memcpy_inline(ptr %dep_src) {
 ; CHECK-SAME: ptr [[DEP_SRC:%.*]]) {
 ; CHECK-NEXT:    [[DEP_DEST:%.*]] = alloca [7 x i8], align 1
 ; CHECK-NEXT:    [[DEST:%.*]] = alloca [7 x i8], align 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP_DEST]], ptr align 1 [[DEP_SRC]], i64 7, i1 false)
 ; CHECK-NEXT:    [[SRC:%.*]] = getelementptr inbounds i8, ptr [[DEP_DEST]], i64 1
-; CHECK-NEXT:    call void @llvm.memcpy.inline.p0.p0.i64(ptr align 1 [[DEST]], ptr align 1 [[SRC]], i64 6, i1 false)
+; CHECK-NEXT:    [[TMP1:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 1
+; CHECK-NEXT:    call void @llvm.memcpy.inline.p0.p0.i64(ptr align 1 [[DEST]], ptr align 1 [[TMP1]], i64 6, i1 false)
 ; CHECK-NEXT:    call void @use(ptr [[DEST]])
 ; CHECK-NEXT:    ret void
 ;
@@ -126,13 +124,12 @@ define void @forward_offset_and_store(ptr %dep_src) {
 ; CHECK-LABEL: define void @forward_offset_and_store(
 ; CHECK-SAME: ptr [[DEP_SRC:%.*]]) {
 ; CHECK-NEXT:    [[DEP_DEST:%.*]] = alloca [7 x i8], align 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP_DEST]], ptr align 1 [[DEP_SRC]], i64 7, i1 false)
 ; CHECK-NEXT:    store i8 1, ptr [[DEP_SRC]], align 1
 ; CHECK-NEXT:    [[DEP_SRC_END:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 6
 ; CHECK-NEXT:    store i8 1, ptr [[DEP_SRC_END]], align 1
 ; CHECK-NEXT:    [[SRC:%.*]] = getelementptr inbounds i8, ptr [[DEP_DEST]], i64 1
 ; CHECK-NEXT:    [[DEP:%.*]] = getelementptr inbounds i8, ptr [[DEP_SRC]], i64 1
-; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 1 [[DEP]], ptr align 1 [[SRC]], i64 5, i1 false)
+; CHECK-NEXT:    call void @llvm.memmove.p0.p0.i64(ptr align 1 [[DEP]], ptr align 1 [[DEP]], i64 5, i1 false)
 ; CHECK-NEXT:    ret void
 ;
   %dep_dest = alloca %buf, align 1
